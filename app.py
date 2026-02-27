@@ -9,8 +9,8 @@ app = Flask(__name__)
 app.secret_key = "memories_secret_key"
 
 # ===== LOGIN DETAILS (YOU CAN CHANGE ANYTIME) =====
-USERNAME = "love"
-PASSWORD = "forever"
+USERNAME = "MohakchiRiya"
+PASSWORD = "5thAug"
 
 # ===== GOOGLE DRIVE SETUP =====
 SCOPES = ['https://www.googleapis.com/auth/drive']

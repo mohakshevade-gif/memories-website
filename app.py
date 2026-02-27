@@ -8,8 +8,8 @@ app.secret_key = "secret123"
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-USERNAME = "MohakchiRiya"
-PASSWORD = "5thAug"
+USERNAME = "love"
+PASSWORD = "forever"
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -72,6 +72,4 @@ def logout():
     return redirect(url_for("login"))
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=10000)
-

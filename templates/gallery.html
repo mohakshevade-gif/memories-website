@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Our Gallery 📸</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #fff0f5;
+            text-align: center;
+        }
+        h1 {
+            color: #ff4b5c;
+            margin-top: 20px;
+        }
+        .upload-box {
+            background: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 15px;
+            display: inline-block;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            margin: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 250px;
+        }
+        img, video {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .caption {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .download-btn {
+            margin-top: 10px;
+            display: inline-block;
+            padding: 8px 15px;
+            background: #ff4b5c;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .logout {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: black;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <a class="logout" href="/logout">Logout</a>
+    <h1>Our Memory Gallery 💕</h1>
+
+    <div class="upload-box">
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required><br><br>
+            <input type="text" name="caption" placeholder="Write a memory caption..." required><br><br>
+            <button type="submit">Upload Memory 📸</button>
+        </form>
+    </div>
+
+    <div class="gallery">
+        {% for item in items %}
+        <div class="card">
+            {% if item.filename.endswith(('mp4','mov','avi')) %}
+                <video controls>
+                    <source src="{{ url_for('uploaded_file', filename=item.filename) }}">
+                </video>
+            {% else %}
+                <img src="{{ url_for('uploaded_file', filename=item.filename) }}">
+            {% endif %}
+            <div class="caption">{{ item.caption }}</div>
+            <a class="download-btn" href="{{ url_for('download_file', filename=item.filename) }}">Download</a>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

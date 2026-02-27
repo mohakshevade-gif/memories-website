@@ -1,75 +1,97 @@
-
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session
 import os
+import json
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 app = Flask(__name__)
-app.secret_key = "secret123"
+app.secret_key = "memories_secret_key"
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
+# ===== LOGIN DETAILS (YOU CAN CHANGE ANYTIME) =====
 USERNAME = "love"
 PASSWORD = "forever"
 
-@app.route("/", methods=["GET", "POST"])
+# ===== GOOGLE DRIVE SETUP =====
+SCOPES = ['https://www.googleapis.com/auth/drive']
+SERVICE_ACCOUNT_FILE = 'credentials.json'
+
+credentials = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+drive_service = build('drive', 'v3', credentials=credentials)
+
+# 🔴 IMPORTANT: YOU WILL PUT YOUR FOLDER ID HERE
+FOLDER_ID = "1mutUPEcpcdKqKv_g5xPyHzKSx_6SWH9L"
+
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+DATA_FILE = "data.json"
+if not os.path.exists(DATA_FILE):
+    with open(DATA_FILE, "w") as f:
+        json.dump([], f)
+
+def upload_to_drive(file_path, filename):
+    file_metadata = {
+        'name': filename,
+        'parents': [FOLDER_ID]
+    }
+    media = MediaFileUpload(file_path, resumable=True)
+    file = drive_service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields='id'
+    ).execute()
+    return file.get('id')
+
+@app.route('/', methods=['GET', 'POST'])
 def login():
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
         if username == USERNAME and password == PASSWORD:
-            session["logged_in"] = True
-            return redirect(url_for("gallery"))
-        else:
-            return "Wrong username or password 💔"
+            session['logged_in'] = True
+            return redirect(url_for('gallery'))
+    return render_template('login.html')
 
-    return render_template("login.html")
-
-@app.route("/gallery", methods=["GET", "POST"])
+@app.route('/gallery', methods=['GET', 'POST'])
 def gallery():
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
 
-    if request.method == "POST":
-        file = request.files["file"]
-        caption = request.form["caption"]
+    with open(DATA_FILE, "r") as f:
+        items = json.load(f)
+
+    if request.method == 'POST':
+        file = request.files['file']
+        caption = request.form['caption']
 
         if file:
             filepath = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filepath)
 
-            with open(os.path.join(UPLOAD_FOLDER, file.filename + ".txt"), "w") as f:
-                f.write(caption)
+            drive_file_id = upload_to_drive(filepath, file.filename)
 
-    files = [f for f in os.listdir(UPLOAD_FOLDER) if not f.endswith(".txt")]
-    items = []
+            items.append({
+                "filename": file.filename,
+                "caption": caption,
+                "drive_id": drive_file_id
+            })
 
-    for file in files:
-        caption_file = os.path.join(UPLOAD_FOLDER, file + ".txt")
-        caption = ""
-        if os.path.exists(caption_file):
-            with open(caption_file, "r") as f:
-                caption = f.read()
-        items.append({"filename": file, "caption": caption})
+            with open(DATA_FILE, "w") as f:
+                json.dump(items, f)
 
-    return render_template("gallery.html", items=items)
+            os.remove(filepath)
 
-@app.route("/uploads/<filename>")
-def uploaded_file(filename):
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    return send_from_directory(UPLOAD_FOLDER, filename)
+        return redirect(url_for('gallery'))
 
-@app.route("/download/<filename>")
-def download_file(filename):
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
-    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
+    return render_template('gallery.html', items=items)
 
-@app.route("/logout")
+@app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    return redirect(url_for('login'))
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+if __name__ == '__main__':
+    app.run(debug=True)

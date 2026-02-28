@@ -13,8 +13,16 @@ SSCOPES = ['https://www.googleapis.com/auth/drive.file']
 
 SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(__file__), "credentials.json")
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+import os
+import json
+from google.oauth2 import service_account
+
+credentials_info = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+
+credentials = service_account.Credentials.from_service_account_info(
+    credentials_info,
+    scopes=SCOPES
+)
 )
 
 drive_service = build('drive', 'v3', credentials=credentials)

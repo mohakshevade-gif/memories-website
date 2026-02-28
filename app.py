@@ -9,7 +9,15 @@ app = Flask(__name__)
 app.secret_key = "memories_secret_key"
 # Google Drive Setup
 SCOPES = ['https://www.googleapis.com/auth/drive']
-SERVICE_ACCOUNT_FILE = 'credentials.json'
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
+SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(__file__), "credentials.json")
+
+credentials = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+)
+
+drive_service = build('drive', 'v3', credentials=credentials)
 FOLDER_ID = '1mutUPEcpcdKqKv_g5xPyHzKSx_6SWH9L'  # We will add your folder ID next
 
 credentials = service_account.Credentials.from_service_account_file(
@@ -103,4 +111,5 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+
     app.run(debug=True)

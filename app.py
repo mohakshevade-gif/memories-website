@@ -23,7 +23,6 @@ credentials = service_account.Credentials.from_service_account_info(
     credentials_info,
     scopes=SCOPES
 )
-)
 
 drive_service = build('drive', 'v3', credentials=credentials)
 FOLDER_ID = '1mutUPEcpcdKqKv_g5xPyHzKSx_6SWH9L'  # We will add your folder ID next

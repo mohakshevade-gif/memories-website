@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.secret_key = "memories_secret_key"
 # Google Drive Setup
 SCOPES = ['https://www.googleapis.com/auth/drive']
-SCOPES = ['https://www.googleapis.com/auth/drive.file']
+SSCOPES = ['https://www.googleapis.com/auth/drive.file']
 
 SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(__file__), "credentials.json")
 
@@ -110,6 +110,6 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-if __name__ == '__main__':
-
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)

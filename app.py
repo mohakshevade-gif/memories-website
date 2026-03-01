@@ -27,8 +27,6 @@ credentials = service_account.Credentials.from_service_account_info(
 drive_service = build('drive', 'v3', credentials=credentials)
 FOLDER_ID = '1mutUPEcpcdKqKv_g5xPyHzKSx_6SWH9L'  # We will add your folder ID next
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
 drive_service = build('drive', 'v3', credentials=credentials)
 
@@ -37,12 +35,21 @@ USERNAME = "MohakchiRiya"
 PASSWORD = "5thAug"
 
 # ===== GOOGLE DRIVE SETUP =====
-SCOPES = ['https://www.googleapis.com/auth/drive']
-SERVICE_ACCOUNT_FILE = 'credentials.json'
+# ----- GOOGLE DRIVE SETUP -----
+import json
+import os
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
+# Load credentials from Render Environment Variable (SAFE)
+credentials_dict = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
+
+from google.oauth2 import service_account
+credentials = service_account.Credentials.from_service_account_info(
+    credentials_dict, scopes=SCOPES)
+
+drive_service = build('drive', 'v3', credentials=credentials)
+FOLDER_ID = '1mutUPEcpcdKqKv_g5xPyHzKSx_6SWH9L'
 drive_service = build('drive', 'v3', credentials=credentials)
 
 # 🔴 IMPORTANT: YOU WILL PUT YOUR FOLDER ID HERE

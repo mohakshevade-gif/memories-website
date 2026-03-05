@@ -66,7 +66,7 @@ if not os.path.exists(DATA_FILE):
 def upload_to_drive(file_path, filename):
     file_metadata = {
         'name': filename,
-        'parents': [FOLDER_ID]
+        'parents': ["1mutUPEcpcdKqKv_g5xPyHzKSx_6SWH9L"]
     }
     media = MediaFileUpload(file_path, resumable=True)
     file = drive_service.files().create(

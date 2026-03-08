@@ -77,17 +77,19 @@ def upload_to_drive(file_path, filename):
 # LOGIN ROUTE
 # ===============================
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET','POST'])
 def login():
 
-    if request.method == "POST":
+    if request.method == 'POST':
 
         username = request.form.get("MohakchiRiya")
         password = request.form.get("5thAug")
 
+        print(username, password)
+
         if username == USERNAME and password == PASSWORD:
-            session["logged_in"] = True
-            return redirect(url_for("gallery"))
+            session['logged_in'] = True
+            return redirect("/gallery")
 
     return render_template("login.html")
 

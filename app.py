@@ -81,11 +81,10 @@ def upload_to_drive(file_path, filename):
 def login():
 
     if request.method == 'POST':
-
         username = request.form.get("MohakchiRiya")
         password = request.form.get("5thAug")
 
-        print(username, password)
+        print("LOGIN ATTEMPT:", username, password)
 
         if username == USERNAME and password == PASSWORD:
             session['logged_in'] = True

@@ -82,8 +82,8 @@ def login():
 
     if request.method == "POST":
 
-        username = request.form.get["MohakchiRiya"]
-        password = request.form.get["5thAug"]
+        username = request.form.get("MohakchiRiya")
+        password = request.form.get("5thAug")
 
         if username == USERNAME and password == PASSWORD:
             session["logged_in"] = True

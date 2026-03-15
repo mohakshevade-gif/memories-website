@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 import json
-
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -9,12 +8,12 @@ from googleapiclient.http import MediaFileUpload
 app = Flask(__name__)
 app.secret_key = "memories_secret_key"
 
+# ===============================
+# LOGIN CREDENTIALS (EDIT HERE)
+# ===============================
 
-# ===============================
-# LOGIN DETAILS
-# ===============================
-USERNAME = "NANANA"
-PASSWORD = "NANANNA"
+USERNAME = "MohakchiRiya"
+PASSWORD = "Brighampahije"
 
 
 # ===============================
@@ -23,8 +22,7 @@ PASSWORD = "NANANNA"
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
-# Load credentials from Render environment variable
-credentials_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+credentials_dict = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
 
 credentials = service_account.Credentials.from_service_account_info(
     credentials_dict,
@@ -33,12 +31,15 @@ credentials = service_account.Credentials.from_service_account_info(
 
 drive_service = build('drive', 'v3', credentials=credentials)
 
-# YOUR GOOGLE DRIVE FOLDER ID
+# ===============================
+# PUT YOUR GOOGLE DRIVE FOLDER ID
+# ===============================
+
 FOLDER_ID = "1mutUPEcpcdKqKv_g5xPyHzKSx_6SWH9L"
 
 
 # ===============================
-# LOCAL STORAGE SETUP
+# LOCAL FILE STORAGE
 # ===============================
 
 UPLOAD_FOLDER = "uploads"
@@ -58,8 +59,8 @@ if not os.path.exists(DATA_FILE):
 def upload_to_drive(file_path, filename):
 
     file_metadata = {
-        "name": filename,
-        "parents": [FOLDER_ID]
+        'name': filename,
+        'parents': [FOLDER_ID]
     }
 
     media = MediaFileUpload(file_path, resumable=True)
@@ -67,14 +68,14 @@ def upload_to_drive(file_path, filename):
     file = drive_service.files().create(
         body=file_metadata,
         media_body=media,
-        fields="id"
+        fields='id'
     ).execute()
 
-    return file.get("id")
+    return file.get('id')
 
 
 # ===============================
-# LOGIN ROUTE
+# LOGIN PAGE
 # ===============================
 
 @app.route('/', methods=['GET','POST'])
@@ -82,38 +83,35 @@ def login():
 
     if request.method == 'POST':
 
-        username = request.form.get("MohakchiRiya")
-        password = request.form.get("Brighampahije")
-
-        print("DEBUG USERNAME:", username)
-        print("DEBUG PASSWORD:", password)
+        username = request.form.get("username")
+        password = request.form.get("password")
 
         if username == USERNAME and password == PASSWORD:
             session['logged_in'] = True
             return redirect(url_for('gallery'))
-        else:
-            return "Login failed"
+
+        return "Login failed"
 
     return render_template("login.html")
 
 
 # ===============================
-# GALLERY ROUTE
+# GALLERY PAGE
 # ===============================
 
-@app.route("/gallery", methods=["GET", "POST"])
+@app.route('/gallery', methods=['GET','POST'])
 def gallery():
 
-    if not session.get("logged_in"):
-        return redirect(url_for("login"))
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
 
     with open(DATA_FILE, "r") as f:
         items = json.load(f)
 
-    if request.method == "POST":
+    if request.method == 'POST':
 
-        file = request.files["file"]
-        caption = request.form["caption"]
+        file = request.files['file']
+        caption = request.form['caption']
 
         if file:
 
@@ -133,7 +131,7 @@ def gallery():
 
             os.remove(filepath)
 
-        return redirect(url_for("gallery"))
+        return redirect(url_for('gallery'))
 
     return render_template("gallery.html", items=items)
 
@@ -142,21 +140,18 @@ def gallery():
 # LOGOUT
 # ===============================
 
-@app.route("/logout")
+@app.route('/logout')
 def logout():
+
     session.clear()
-    return redirect(url_for("login"))
+    return redirect(url_for('login'))
 
 
 # ===============================
-# RUN SERVER
+# RUN APP
 # ===============================
 
 if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 10000))
-
-    app.run(
-        host="0.0.0.0",
-        port=port
-    )
+    app.run(host="0.0.0.0", port=port)

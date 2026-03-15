@@ -99,11 +99,11 @@ text-decoration:none;
 
 <div class="card">
 
-<img src="https://drive.google.com/uc?export=view&id={{ item.drive_id }}">
+<img src="{{ item.image_url }}">
 
 <div class="caption">{{ item.caption }}</div>
 
-<a class="download-btn" href="https://drive.google.com/uc?export=download&id={{ item.drive_id }}">Download</a>
+<a class="download-btn" href="{{ item.image_url }}" download>Download</a>
 
 </div>
 

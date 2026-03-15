@@ -1,16 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 import json
-import pickle
 
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+import cloudinary
+import cloudinary.uploader
 
+cloudinary.config(
+    cloud_name="ddnponhsu",
+    api_key="169154656924871",
+    api_secret="YB6b_jlZBKPjxQ8hAUDGIfn_Tvs"
+)
 
 app = Flask(__name__)
 app.secret_key = "memories_secret_key"
-
 
 # ===============================
 # LOGIN CREDENTIALS
@@ -28,23 +30,13 @@ PASSWORD = "Brighampahije"
 # GOOGLE DRIVE SETUP
 # ===============================
 
-SCOPES = ['https://www.googleapis.com/auth/drive']
-
-credentials_dict = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
-
-credentials = service_account.Credentials.from_service_account_info(
-    credentials_dict,
-    scopes=SCOPES
-)
-
-drive_service = build('drive', 'v3', credentials=credentials)
 
 
 # ===============================
 # GOOGLE DRIVE FOLDER ID
 # ===============================
 
-FOLDER_ID = "1xxOEk9LwVZl4Q_qxKQJ28ftwn7ZvY8DZ"
+
 
 
 # ===============================
@@ -65,24 +57,11 @@ if not os.path.exists(DATA_FILE):
 # GOOGLE DRIVE UPLOAD FUNCTION
 # ===============================
 
-def upload_to_drive(file_path, filename):
+def upload_to_cloudinary(file_path):
 
-    file_metadata = {
-        "name": filename,
-        "parents": [FOLDER_ID]
-    }
+    result = cloudinary.uploader.upload(file_path)
 
-    media = MediaFileUpload(file_path, resumable=True)
-
-    file = drive_service.files().create(
-        body=file_metadata,
-        media_body=media,
-        fields="id",
-        supportsAllDrives=True
-    ).execute()
-
-    return file.get("id")
-
+    return result["secure_url"]
 
 # ===============================
 # LOGIN PAGE
@@ -128,12 +107,12 @@ def gallery():
             filepath = os.path.join(UPLOAD_FOLDER, file.filename)
             file.save(filepath)
 
-            drive_file_id = upload_to_drive(filepath, file.filename)
+            image_url = upload_to_cloudinary(filepath)
 
             items.append({
                 "filename": file.filename,
                 "caption": caption,
-                "drive_id": drive_file_id
+                "image_url": image_url
             })
 
             with open(DATA_FILE, "w") as f:

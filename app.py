@@ -1,15 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 import json
-from google.oauth2 import service_account
+import pickle
+
+from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from google.auth.transport.requests import Request
+
 
 app = Flask(__name__)
 app.secret_key = "memories_secret_key"
 
+
 # ===============================
-# LOGIN CREDENTIALS (EDIT HERE)
+# LOGIN CREDENTIALS
 # ===============================
 
 USERNAME = "MohakchiRiya"
@@ -17,22 +22,34 @@ PASSWORD = "Brighampahije"
 
 
 # ===============================
-# GOOGLE DRIVE SETUP
+# GOOGLE DRIVE AUTHENTICATION
 # ===============================
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
-credentials_dict = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
+creds = None
 
-credentials = service_account.Credentials.from_service_account_info(
-    credentials_dict,
-    scopes=SCOPES
-)
+if os.path.exists("token.pickle"):
+    with open("token.pickle", "rb") as token:
+        creds = pickle.load(token)
 
-drive_service = build('drive', 'v3', credentials=credentials)
+if not creds or not creds.valid:
+
+    flow = InstalledAppFlow.from_client_secrets_file(
+        "client_secret.json",
+        SCOPES
+    )
+
+    creds = flow.run_local_server(port=0)
+
+    with open("token.pickle", "wb") as token:
+        pickle.dump(creds, token)
+
+drive_service = build("drive", "v3", credentials=creds)
+
 
 # ===============================
-# PUT YOUR GOOGLE DRIVE FOLDER ID
+# GOOGLE DRIVE FOLDER ID
 # ===============================
 
 FOLDER_ID = "1xxOEk9LwVZl4Q_qxKQJ28ftwn7ZvY8DZ"
@@ -59,8 +76,8 @@ if not os.path.exists(DATA_FILE):
 def upload_to_drive(file_path, filename):
 
     file_metadata = {
-        'name': filename,
-        'parents': [FOLDER_ID]
+        "name": filename,
+        "parents": [FOLDER_ID]
     }
 
     media = MediaFileUpload(file_path, resumable=True)
@@ -68,27 +85,27 @@ def upload_to_drive(file_path, filename):
     file = drive_service.files().create(
         body=file_metadata,
         media_body=media,
-        fields='id',
-        supportsAllDrives=True
+        fields="id"
     ).execute()
 
-    return file.get('id')
+    return file.get("id")
+
 
 # ===============================
 # LOGIN PAGE
 # ===============================
 
-@app.route('/', methods=['GET','POST'])
+@app.route("/", methods=["GET", "POST"])
 def login():
 
-    if request.method == 'POST':
+    if request.method == "POST":
 
         username = request.form.get("username")
         password = request.form.get("password")
 
         if username == USERNAME and password == PASSWORD:
-            session['logged_in'] = True
-            return redirect(url_for('gallery'))
+            session["logged_in"] = True
+            return redirect(url_for("gallery"))
 
         return "Login failed"
 
@@ -99,19 +116,19 @@ def login():
 # GALLERY PAGE
 # ===============================
 
-@app.route('/gallery', methods=['GET','POST'])
+@app.route("/gallery", methods=["GET", "POST"])
 def gallery():
 
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
 
     with open(DATA_FILE, "r") as f:
         items = json.load(f)
 
-    if request.method == 'POST':
+    if request.method == "POST":
 
-        file = request.files['file']
-        caption = request.form['caption']
+        file = request.files["file"]
+        caption = request.form["caption"]
 
         if file:
 
@@ -131,7 +148,7 @@ def gallery():
 
             os.remove(filepath)
 
-        return redirect(url_for('gallery'))
+        return redirect(url_for("gallery"))
 
     return render_template("gallery.html", items=items)
 
@@ -140,11 +157,11 @@ def gallery():
 # LOGOUT
 # ===============================
 
-@app.route('/logout')
+@app.route("/logout")
 def logout():
 
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for("login"))
 
 
 # ===============================

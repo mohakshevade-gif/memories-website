@@ -25,27 +25,20 @@ PASSWORD = "Brighampahije"
 # GOOGLE DRIVE AUTHENTICATION
 # ===============================
 
-SCOPES = ['https://www.googleapis.com/auth/drive.file']
+# ===============================
+# GOOGLE DRIVE SETUP
+# ===============================
 
-creds = None
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
-if os.path.exists("token.pickle"):
-    with open("token.pickle", "rb") as token:
-        creds = pickle.load(token)
+credentials_dict = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
 
-if not creds or not creds.valid:
+credentials = service_account.Credentials.from_service_account_info(
+    credentials_dict,
+    scopes=SCOPES
+)
 
-    flow = InstalledAppFlow.from_client_secrets_file(
-        "client_secret.json",
-        SCOPES
-    )
-
-    creds = flow.run_local_server(port=0)
-
-    with open("token.pickle", "wb") as token:
-        pickle.dump(creds, token)
-
-drive_service = build("drive", "v3", credentials=creds)
+drive_service = build('drive', 'v3', credentials=credentials)
 
 
 # ===============================

@@ -3,10 +3,9 @@ import os
 import json
 import pickle
 
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-from google.auth.transport.requests import Request
 
 
 app = Flask(__name__)
